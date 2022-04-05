@@ -1,186 +1,86 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View , Image } from 'react-native';
+
+import { View, Image, TouchableOpacity } from 'react-native';
 import React, { useState, useEffect } from 'react';
+import Ronda from './Game';
+import styles from './styles';
+
+
+const ronda = Ronda(3)
+ronda.init
+const players = ronda.Players
+ronda.Thrower = 1
 
 
 export default function App() {
-  class Table{
-    CurrentTable = [];
-    CurrentScore = []
-    CurrentPlayers = []
-    LastThrower;
-    LastCard;
-    CurrentTurn = 0;
-    constructor(Players) {
-      this.maxPlayers = Players;
-    }
-    get initiate() {
-      function shuffle(array) {
-        for (var i = array.length - 1; i > 0; i--) {
-            var j = Math.floor(Math.random() * (i + 1));
-            var temp = array[i];
-            array[i] = array[j];
-            array[j] = temp;
-        }
-      }
-  
-      const CTypes = ['A','B','C','D']
-      const CNumbers = [1,2,3,4,5,6,7,10,11,12]
-      const deck = []
-      CNumbers.forEach((NUM) => {
-        CTypes.flatMap(TYPE =>{
-  
-          deck.push( {number : NUM , type : TYPE })
-        })
-      })
-      shuffle(deck)
-      var SliceStart = 0
-      var SliceEnd = 5
-      
-      for(var x = 0 ; x < this.maxPlayers ; x++) {
-        this.CurrentScore.push({p : 1 , score : 0})
-        let player = new Player(x)
-        this.CurrentPlayers.push[player]
-        player.setHand = deck.slice(SliceStart ,SliceEnd)
-        SliceEnd+=5
-        SliceStart+=5
-      }
-      
-    }
-    set Thrower(ID) {
-      this.LastThrower = ID;
-    }
-    set Throw(ThrownCard ) {
-      let ToBeRemoved = []
-      if(this.CurrentTable.includes(ThrownCard.number)) {
-        if(this.LastCard == this.CurrentTable.includes(ThrownCard.number)){
-          console.log('BONT')
-        }
+  const [, updateState] = React.useState();
+  const forceUpdate = React.useCallback(() => updateState({}), []);
 
-        for(var x = 0 ; x < this.CurrentTable.length ; x++){
-          
-          if(this.CurrentTable.includes(ThrownCard.number+x)){
-
-            this.CurrentScore.forEach( score => {
-              this.CurrentTable.forEach((card , index) => {
-                if(card == ThrownCard.number+x) {
-                  ToBeRemoved.push(index)
-
-                }
-              })
-
-              if(score.p == this.LastThrower) {
-                score.score +=1
-
-              }
-            })
-          }
-        }
-        if(ToBeRemoved.length == this.CurrentTable.length) {
-          console.log('MISA')
-        }
-
-      } else {
-        this.CurrentTable.push(ThrownCard.number)
-        this.LastCard = ThrownCard.number;
-      }
-      ToBeRemoved.forEach( card => {
-        this.CurrentTable.splice(card)
-      })
-      console.log(this.CurrentTable)
-      this.Turn += 1 
-    }
-  }
-  
-  class Player {
-    PlayerHand;
-    PlayerID;
-  
-    constructor(ID) {
-      this.id = ID;
-    }
-    set setHand(cards) {
-      this.PlayerHand = cards
-  
-    }
-    get getHand() {
-  
-      console.log(this.PlayerHand)
-    }
-  }
+  const [PlayerHand, SetPlayerHand] = useState([])
+  const [CurTable, SetTable] = useState()
   useEffect(() => {
-    let table = new Table(1)
-    table.initiate
-    table.Thrower = 1
-    table.Thrower = 5
+    SetPlayerHand(players)
+    console.log('effect')
+  }, [])
 
-    table.Throw = {number : 3  , type : 'syof'}
-    table.Throw = {number : 4  , type : 'syof'}
-    table.Throw = {number : 5 , type : 'syof'}
-    table.Throw = {number : 6  , type : 'syof'}
+  const Throw = (card) => {
+    ronda.Throw = { number: card.number, type: card.type }
+    SetTable(ronda.CurrentTable)
+    forceUpdate()
+    SetTable(ronda.CurrentTable)
+    console.log(ronda.CurrentTable)
+  }
 
-    table.Throw = {number : 8  , type : 'syof'}
+  const Card = ({ back, num, type, disabled }) => {
 
-
-
-
-
-
-  })
-  const Card = () => {
+    let src = require("./img/2D.gif")
+    let backcard = require("./img/back.gif")
+    if (num != undefined) {
+      src = require("./img/" + num + type + ".gif")
+    }
     return (<View style={styles.card}>
-      <Image resizeMode='contain' style={styles.img} source = {require('./img/00.gif')}  />
+      <TouchableOpacity disabled={disabled} onPress={() => Throw({ number: num, type: type })}><Image resizeMode='contain' style={styles.img} source={back ? backcard : src} /></TouchableOpacity>
+
     </View>)
   }
+
+  const RenderMyCards = () => {
+    let cards = []
+    PlayerHand.forEach(player => {
+      if (player.pid == 0) {
+        player.phand.map(card => {
+          cards.push(<Card disabled={false} key={card.number + card.type} type={card.type} num={card.number}></Card>)
+        })
+
+      }
+    })
+    return cards
+  }
+
+  const RenderTable = () => {
+    let cards = []
+    CurTable ? CurTable.forEach(card => {
+      cards.push(<Card disabled={true} key={card.number + card.type} num={card.number} type={card.type}></Card>)
+    }) : ''
+    return cards
+  }
+
   return (
     <View style={styles.container}>
+      <View style={styles.OPTOP}>
+        <Card back={true}></Card>
+        <Card back={true} ></Card>
+        <Card back={true}></Card>
+        <Card back={true}></Card>
+      </View>
+
       <View style={styles.table}>
+        <RenderTable></RenderTable>
 
       </View>
       <View style={styles.myhand}>
-        <Card></Card>
-        <Card></Card>
-        <Card></Card>
-        <Card></Card>
+        <RenderMyCards></RenderMyCards>
       </View>
-      <View style={styles.op1}>
-        <Card></Card>
-        <Card></Card>
-        <Card></Card>
-        <Card></Card>
-      </View>
-
     </View>
-  );        
+  );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex:1,
-    flexDirection:'column',
-    backgroundColor:'green'
-  },  
-  myhand : {
-    flex:2,
-    flexDirection:'row',
-    width:'80%',
-    alignSelf:'center',
-    justifyContent : 'center'
-  },
-  table : {
-
-    flex:5,
-    backgroundColor:'green'
-  },
-  card: {
-  
-
-  },
-  img : {
-    width:110,
-    height:150,
-  },
-  op1:{
-
-}
-});
