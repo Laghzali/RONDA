@@ -1,12 +1,11 @@
 
 class Table {
   CurrentTable = [];
-
   CurrentScore = []
   CurrentPlayers = []
   LastThrower;
   LastCard;
-  CurrentTurn = 0;
+  Turn = 0;
   constructor(Players) {
     this.maxPlayers = Players;
   }
@@ -60,7 +59,7 @@ class Table {
   //return players on the table
   get Players() {
     return this.CurrentPlayers.map(p => {
-      return { pid: p.id, phand: p.getHand }
+      return { pid: p.PlayerID, phand: p.getHand }
     })
   }
 
@@ -85,12 +84,17 @@ class Table {
   //Throw card to the table
   set Throw(ThrownCard) {
     let pscore = 0
+
+    if (this.Turn != this.LastThrower) {
+      console.log('Player : ' + this.Turn + 'TURN')
+      return
+    }
+
     this.CurrentPlayers.forEach(player => {
-      if (player.PlayerID == this.Thrower) {
+      if (player.PlayerID == this.LastThrower) {
         player.removeCard = ThrownCard
       }
     })
-
     ////CHECK IF CurrentTable.card.number is equal to throwencard.number (check if makla)
     ////CHECK IF there is pottentiol multi eat (loop through currenttable and check if nextCard is eatable )
     if (this.CurrentTable.length > 0) {
@@ -159,13 +163,13 @@ class Player {
   PlayerID;
 
   constructor(ID) {
-    this.id = ID;
+    this.PlayerID = ID;
   }
   set removeCard(cardToremove) {
     this.PlayerHand.forEach((mycard, index) => {
 
       if (JSON.stringify(mycard) === JSON.stringify(cardToremove)) {
-        //  console.log(this.PlayerHand.splice(index , 1))
+        console.log(this.PlayerHand.splice(index, 1))
 
 
       }

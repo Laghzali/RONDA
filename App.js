@@ -1,86 +1,109 @@
 
-import { View, Image, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Text, Button } from 'react-native';
 import React, { useState, useEffect } from 'react';
-import Ronda from './Game';
-import styles from './styles';
+import { io } from "socket.io-client";
+import { TextInput } from 'react-native-web';
 
-
-const ronda = Ronda(3)
-ronda.init
-const players = ronda.Players
-ronda.Thrower = 1
-
+function generate_token(length) {
+    //edit the token allowed characters
+    var a = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890".split("");
+    var b = [];
+    for (var i = 0; i < length; i++) {
+        var j = (Math.random() * (a.length - 1)).toFixed(0);
+        b[i] = a[j];
+    }
+    return b.join("");
+}
+const ClientID = generate_token(5)
+localStorage.setItem('ClientID', ClientID)
+var socket = io('ws://localhost:3000', { transports: ['websocket'] })
 
 export default function App() {
-  const [, updateState] = React.useState();
-  const forceUpdate = React.useCallback(() => updateState({}), []);
+    const [myRoom, setRoom] = useState()
+    const [toJoin, setToJoin] = useState(false)
+    const [connected, SetConnected] = useState(false)
+    const [onlinePlayers, setOnlinePlayers] = useState(false)
 
-  const [PlayerHand, SetPlayerHand] = useState([])
-  const [CurTable, SetTable] = useState()
-  useEffect(() => {
-    SetPlayerHand(players)
-    console.log('effect')
-  }, [])
 
-  const Throw = (card) => {
-    ronda.Throw = { number: card.number, type: card.type }
-    SetTable(ronda.CurrentTable)
-    forceUpdate()
-    SetTable(ronda.CurrentTable)
-    console.log(ronda.CurrentTable)
-  }
-
-  const Card = ({ back, num, type, disabled }) => {
-
-    let src = require("./img/2D.gif")
-    let backcard = require("./img/back.gif")
-    if (num != undefined) {
-      src = require("./img/" + num + type + ".gif")
-    }
-    return (<View style={styles.card}>
-      <TouchableOpacity disabled={disabled} onPress={() => Throw({ number: num, type: type })}><Image resizeMode='contain' style={styles.img} source={back ? backcard : src} /></TouchableOpacity>
-
-    </View>)
-  }
-
-  const RenderMyCards = () => {
-    let cards = []
-    PlayerHand.forEach(player => {
-      if (player.pid == 0) {
-        player.phand.map(card => {
-          cards.push(<Card disabled={false} key={card.number + card.type} type={card.type} num={card.number}></Card>)
+    useEffect(async () => {
+        //experimenting
+        socket.on(myRoom, msg => {
+            console.log(msg)
         })
 
-      }
-    })
-    return cards
-  }
+        //listen for room asignment (first time socket is connected)
+        socket.on('room', room => {
+            localStorage.setItem('myRoom', room.id)
+            setRoom(room.id)
+            SetConnected(true)
+        })
+        //Listen for update players
+        socket.on('UPDATE_PLAYERS', length => {
+            setOnlinePlayers(length)
+        })
+        InitGame(myRoom)
+        //RECEIVE HAND 
+        socket.on('GAME_RECEIVE_HAND', hand => {
+            console.log(hand)
+        })
 
-  const RenderTable = () => {
-    let cards = []
-    CurTable ? CurTable.forEach(card => {
-      cards.push(<Card disabled={true} key={card.number + card.type} num={card.number} type={card.type}></Card>)
-    }) : ''
-    return cards
-  }
+    }, [myRoom])
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.OPTOP}>
-        <Card back={true}></Card>
-        <Card back={true} ></Card>
-        <Card back={true}></Card>
-        <Card back={true}></Card>
-      </View>
+    const InitGame = (R) => {
 
-      <View style={styles.table}>
-        <RenderTable></RenderTable>
+        R ? socket.emit('GAME_INIT', { id: R, status: 'start', maxplayers: onlinePlayers }) : false
+    }
+    const JoinSession = async () => {
+        //ask server to join me on toJoin Room
+        socket.emit('JOIN_ROOM', toJoin)
 
-      </View>
-      <View style={styles.myhand}>
-        <RenderMyCards></RenderMyCards>
-      </View>
+        //listen on toJoin ID room
+        socket.on(toJoin, status => {
+            if (status) {
+                setRoom(toJoin)
+                localStorage.setItem('myRoom', toJoin)
+                SetConnected(true)
+            }
+        })
+    }
+
+    return (<View style={styles.container}>
+        <View style={styles.sidebar}>
+
+            <Text>Your ROOM ID is: {myRoom} </Text>
+
+            <View style={{ marginTop: 20, flexDirection: 'row' }}>
+                <TextInput placeholder={'ROOM ID'} style={styles.input} onChange={e => { setToJoin(e.target.value.toString()) }}></TextInput>
+                <Text>Online Players : {onlinePlayers ? onlinePlayers : '1'}</Text>
+                <Button style={{ flex: 0 }} title='Join Session' onPress={() => JoinSession()}> </Button>
+            </View>
+            <Text>{connected ? "Connected to session :  " + myRoom : 'no session'} </Text>
+
+
+        </View>
+        <View style={styles.body}></View>
     </View>
-  );
+    )
 }
 
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        flexDirection: 'row',
+        backgroundColor: 'blue'
+    },
+    sidebar: {
+        flex: 3,
+        backgroundColor: 'red'
+    },
+    body: {
+        flex: 9
+    },
+    input: {
+        width: '50%',
+        padding: 5,
+        backgroundColor: 'white',
+        margin: 10,
+
+    }
+})
