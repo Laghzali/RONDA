@@ -1,32 +1,24 @@
 
-import { View, Image, TouchableOpacity } from 'react-native';
+import { View, Image, TouchableOpacity, Text } from 'react-native';
 import React, { useState, useEffect } from 'react';
-import Ronda from './Game';
 import styles from './styles';
-import { io } from "socket.io-client";
-const ronda = Ronda(3)
-ronda.init
-const players = ronda.Players
-ronda.Thrower = 0
-var socket = io('ws://localhost:3000', { transports: ['websocket'] })
 
-export default function App() {
+export default function Play({ phand, table, socket, room, pid }) {
+  const [PlayerHand, setPlayerHand] = useState(null)
+  const [CurTable, setCurTable] = useState(null)
 
-  const [PlayerHand, SetPlayerHand] = useState([])
-  const [CurTable, SetTable] = useState()
-  const [messageText, setMessageText] = React.useState('');
-  const [CurrentSession, setSession] = useState()
+
   useEffect(() => {
-    socket.on('message', msg => {
-      console.log(msg)
+    socket.on('GAME_CURRENT_TABLE', xtable => {
+      setCurTable(xtable)
+      console.log(xtable)
     })
-  }, [])
+    setCurTable(table)
+    setPlayerHand(phand)
+  }, [socket, PlayerHand, table])
 
   const Throw = (card) => {
-    console.log(socket.emit('message', { status: 'start' }))
-    ronda.Throw = { number: card.number, type: card.type }
-    SetTable(ronda.CurrentTable)
-
+    socket.emit('GAME_THROW', { room: room, number: card.number, type: card.type, pid: pid })
   }
   const Myhand = () => {
     return (<View style={styles.myhand}>
@@ -41,25 +33,27 @@ export default function App() {
   }
 
   const RenderMyCards = () => {
-    SetPlayerHand(players)
-    let cards = []
-    PlayerHand.forEach(player => {
-      //USE SERVER SIDE FUNCTION TO DISTRIBUTE IDS AND REPLACE 0 WITH ID ASSIGNED TO CURRENT CLIENT
-      if (player.pid == 0) {
-        player.phand.map(card => {
-          cards.push(<Card disabled={false} key={card.number + card.type} type={card.type} num={card.number}></Card>)
-        })
 
-      }
+    if (PlayerHand == null)
+      return (<Text>Walou</Text>)
+    let cards = []
+    console.log(PlayerHand.PlayerHand)
+    PlayerHand.PlayerHand.forEach(card => {
+      //USE SERVER SIDE FUNCTION TO DISTRIBUTE IDS AND REPLACE 0 WITH ID ASSIGNED TO CURRENT CLIENT
+      cards.push(<Card disabled={false} key={card.number + card.type} type={card.type} num={card.number}></Card>)
     })
     return cards
   }
 
   const RenderTable = () => {
+    if (PlayerHand == null)
+      return (<Text>Walou</Text>)
     let cards = []
+
     CurTable ? CurTable.forEach(card => {
       cards.push(<Card disabled={true} key={card.number + card.type} num={card.number} type={card.type}></Card>)
     }) : ''
+    console.log(cards)
     return cards
   }
 
@@ -71,7 +65,7 @@ export default function App() {
       src = require("./img/" + num + type + ".gif")
     }
     return (<View style={styles.card}>
-      <TouchableOpacity disabled={disabled} onPress={() => Throw({ number: num, type: type })}><Image resizeMode='contain' style={styles.img} source={back ? backcard : src} /></TouchableOpacity>
+      <TouchableOpacity disabled={back ? true : disabled} onPress={() => Throw({ number: num, type: type })}><Image resizeMode='contain' style={styles.img} source={back ? backcard : src} /></TouchableOpacity>
 
     </View>)
   }
