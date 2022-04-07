@@ -1,9 +1,13 @@
 
-import { View, StyleSheet, Text } from 'react-native';
+import { View, StyleSheet, Image } from 'react-native';
 import React, { useState, useEffect } from 'react';
+import { Avatar } from 'react-native-paper';
 import { io } from "socket.io-client";
-import { TextInput, TouchableOpacity } from 'react-native-web';
+import { TextInput, Button, Text } from 'react-native-paper';
+
 import Play from './Play';
+
+
 
 
 function generate_token(length) {
@@ -31,13 +35,23 @@ export default function App() {
     const [gameStatus, setGameStatus] = useState('idle')
     const [socket, setSocket] = useState()
     const [PlayerID, setPlayerID] = useState()
-    const [score, setScore] = useState()
+    const [score, setScore] = useState([])
+    const [name, setName] = useState()
+    const [NameValue, setNameValue] = useState()
+    const [Turn, setTurn] = useState()
     useEffect(() => {
         setSocket(io('ws://localhost:3000', { transports: ['websocket'] }))
     }, [])
     useEffect(() => {
         if (!socket)
             return
+        //check if player already registered
+        if (localStorage.getItem('Ronda_Client_Name')) {
+            setName(localStorage.getItem('Ronda_Client_Name'))
+        } else {
+            setName(false)
+            console.log('here')
+        }
         //experimenting
         socket.on(myRoom, msg => {
             console.log(msg)
@@ -49,24 +63,32 @@ export default function App() {
             setRoom(room.id)
             SetConnected(true)
         })
+
         //Listen for update players
         socket.on('UPDATE_PLAYERS', length => {
             setOnlinePlayers(length)
         })
+
         //RECEIVE HAND 
         socket.on('GAME_RECEIVE_HAND', hand => {
             setHand(hand)
         })
         //LISTEN TO TABLE CHANGE
         socket.on('GAME_CURRENT_TABLE', xtable => {
+            console.log('received table');
+            console.log(xtable)
             setTable(xtable)
 
         })
         //LISTEN FOR END GAME
-        socket.on('GAME_FINISHED', score => {
-            console.log(score)
-            setScore(score)
+        socket.on('GAME_FINISHED', data => {
+            console.log('FINIIIIIISHED RECEIVED')
+            console.log(data)
 
+        })
+        socket.on('GAME_RECEIVE_SCORE', score => {
+            console.log(score)
+            setScore([...score])
         })
         //Listen to game start
         socket.on('GAME_START', xstatus => {
@@ -74,9 +96,15 @@ export default function App() {
         })
         //Listen for player ID
         socket.on('PLAYER_ID', xid => {
-            console.log('pid : ' + xid)
+            localStorage.setItem('Ronda_Player_ID', xid)
+            console.log(xid)
             setPlayerID(xid)
 
+        })
+        //Listen for Player turn
+        socket.on('PLAYER_TURN', turn => {
+            console.log('ITS TURN : ' + turn)
+            setTurn(turn)
         })
     }, [socket])
 
@@ -105,25 +133,55 @@ export default function App() {
             }
         })
     }
-
+    const RenderScore = () => {
+        if (!score)
+            return
+        console.log(score)
+        return score.map(score => {
+            return (<><Text style={{ fontWeight: 'bold', color: 'white' }}>SCORE : </Text>
+                <Text style={{ fontWeight: 'bold', color: 'lightgreen', fontSize: 15 }}>{score.p} : {score.score}</Text></>
+            )
+        })
+    }
     return (<View style={styles.container}>
         <View style={styles.sidebar}>
-
-            <Text>Your ROOM ID is: {myRoom} </Text>
-
-            <View style={{ marginTop: 20, alignItems: 'center', flexDirection: 'row' }}>
-                <TextInput placeholder={'ROOM ID'} style={styles.input} onChange={e => { setToJoin(e.target.value.toString()) }}></TextInput>
-                <TouchableOpacity style={{ backgroundColor: 'red', alignItems: 'center', height: 20, width: 50 }} type={'contained'} title='Join Session' onPress={() => JoinSession()}><Text>Join</Text> </TouchableOpacity>
+            <View style={{ alignItems: 'center', marginBottom: 30 }}>
+                <Avatar.Image size={150} source={require('./assets/logo.jpg')} />
             </View>
-            <Text>{connected ? "Connected to session :  " + myRoom : 'no session'} </Text>
-            <Text>Online Players : {onlinePlayers ? onlinePlayers : '1'}</Text>
-            <TouchableOpacity style={{ margin: '10%', backgroundColor: 'red', alignItems: 'center', height: 20, width: 50 }} type={'contained'} title='Join Session' onPress={() => InitGame(myRoom)}><Text>START</Text> </TouchableOpacity>
+            {name && gameStatus === 'idle' ?
+                <View>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={{ fontWeight: 'bold', color: 'white' }}>Your ROOM ID is: </Text>
+                        <Text style={{ fontWeight: 'bold', color: 'lightgreen', fontSize: 15 }}>{myRoom}</Text>
+                    </View>
 
+                    <View style={{ marginTop: 20, marginBottom: 20, alignItems: 'center', flexDirection: 'row' }}>
+                        <TextInput placeholder={'ROOM ID'} style={styles.input} onChange={e => { setToJoin(e.target.value.toString()) }}></TextInput>
+                        <Button mode="contained" onPress={() => JoinSession()}>Join </Button>
+                    </View>
+                    <Text style={{ fontWeight: '600', color: 'white' }}>{connected ? "Connected to session :  " + myRoom : ''} </Text>
+                    <Text style={{ fontWeight: '600', color: 'lightgreen' }}>Online Players : {onlinePlayers ? onlinePlayers : '1'}</Text>
+                    <Button mode="contained" style={{ marginTop: 20 }} onPress={() => InitGame(myRoom)}><Text>START</Text> </Button>
+                </View>
+                : <>
+                    {gameStatus === 'start' ?
+                        <View>
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <RenderScore></RenderScore>
+                            </View>
+                        </View> : <View>
+                            <View style={{ marginTop: 20, marginBottom: 20, alignItems: 'center', flexDirection: 'row' }}>
+                                <TextInput placeholder={'Your name'} style={{ height: '100%', width: '80%', marginRight: 10, backgroundColor: 'white' }} onChange={e => { setNameValue(e.target.value.toString()) }}></TextInput>
+                                <Button mode="contained" onPress={() => { localStorage.setItem('Ronda_Client_Name', NameValue), setName(NameValue) }}>Join </Button>
+                            </View>
+                        </View >}
+                </>
+            }
 
 
         </View>
         <View style={styles.body}>
-            {gameStatus == 'start' && myHand != null ? <Play phand={myHand} table={table} room={myRoom} pid={PlayerID} socket={socket}></Play> : ''}
+            {gameStatus == 'start' && myHand != null ? <Play phand={myHand} table={table} room={myRoom} socket={socket}></Play> : ''}
         </View>
     </View>
     )
@@ -137,16 +195,18 @@ const styles = StyleSheet.create({
     },
     sidebar: {
         flex: 3,
-        backgroundColor: 'blue'
+        borderRadius: 5,
+        shadowColor: "#FF6F61",
+        padding: 50,
+        backgroundColor: '#34568B'
     },
     body: {
         flex: 9
     },
     input: {
-        width: '50%',
-        padding: 5,
-        backgroundColor: 'white',
-        margin: 10,
+
+        height: '100%', width: '70%', marginRight: 10, backgroundColor: 'white',
+
 
     }
 })
