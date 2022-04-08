@@ -6,9 +6,7 @@ import { io } from "socket.io-client";
 import { TextInput, Button, Text } from 'react-native-paper';
 
 import Play from './Play';
-
-
-
+import { FlatList } from 'react-native-web';
 
 function generate_token(length) {
     //edit the token allowed characters
@@ -35,10 +33,11 @@ export default function App() {
     const [gameStatus, setGameStatus] = useState('idle')
     const [socket, setSocket] = useState()
     const [PlayerID, setPlayerID] = useState()
-    const [score, setScore] = useState([])
+    const [score, setScore] = useState()
     const [name, setName] = useState()
     const [NameValue, setNameValue] = useState()
     const [Turn, setTurn] = useState()
+    const [currentPlayers, setPlayers] = useState()
     useEffect(() => {
         setSocket(io('ws://localhost:3000', { transports: ['websocket'] }))
     }, [])
@@ -53,9 +52,7 @@ export default function App() {
             console.log('here')
         }
         //experimenting
-        socket.on(myRoom, msg => {
-            console.log(msg)
-        })
+        socket.emit('SAVE_MY_NAME_KURWA', localStorage.getItem('Ronda_Client_Name'))
 
         //listen for room asignment (first time socket is connected)
         socket.on('room', room => {
@@ -88,10 +85,11 @@ export default function App() {
         })
         socket.on('GAME_RECEIVE_SCORE', score => {
             console.log(score)
-            setScore([...score])
+            setScore(score)
         })
         //Listen to game start
         socket.on('GAME_START', xstatus => {
+            socket.on
             setGameStatus('start')
         })
         //Listen for player ID
@@ -100,6 +98,16 @@ export default function App() {
             console.log(xid)
             setPlayerID(xid)
 
+        })
+        //LISTEN FOR CURRENT PLAYERS
+        socket.on('CURRENT_PLAYERS', data => {
+            let players = new Map()
+            data.forEach(player => {
+                players.set(player.cid, player.cname)
+            })
+            setPlayers(players)
+
+            console.log(data)
         })
         //Listen for Player turn
         socket.on('PLAYER_TURN', turn => {
@@ -118,7 +126,7 @@ export default function App() {
     const JoinSession = async () => {
         //ask server to join me on toJoin Room
         if (toJoin.length > 0) {
-            socket.emit('JOIN_ROOM', toJoin)
+            socket.emit('JOIN_ROOM', { room: toJoin, pname: localStorage.getItem('Ronda_Client_Name') })
 
         } else {
             alert('Invalid room ID')
@@ -133,20 +141,49 @@ export default function App() {
             }
         })
     }
+    const Bont = ({ many }) => {
+        let totalBont = []
+        for (let x = 0; x < many; x++) {
+            console.log('render bont')
+            totalBont.push(<Avatar.Image style={{ backgroundColor: 'none' }} size={35} source={require('./assets/bont.png')} />)
+        }
+        return totalBont
+    }
+    const Hbel = ({ many }) => {
+        let totalBont = []
+        for (let x = 0; x < many; x++) {
+            console.log('render bont')
+            totalBont.push(<Image style={{ backgroundColor: 'none', width: 34, height: 90 }} resizeMode={'contain'} source={require('./assets/7bel.png')} />)
+        }
+        return totalBont
+    }
     const RenderScore = () => {
         if (!score)
             return
-        console.log(score)
+        console.log(currentPlayers)
         return score.map(score => {
-            return (<><Text style={{ fontWeight: 'bold', color: 'white' }}>SCORE : </Text>
-                <Text style={{ fontWeight: 'bold', color: 'lightgreen', fontSize: 15 }}>{score.p} : {score.score}</Text></>
-            )
+
+            return (<View style={{ flexDirection: 'column', alignItems: 'center', marginBottom: 30 }}>
+                <Text>{currentPlayers.get(score.p)}</Text>
+                <View style={{ flexDirection: 'column', alignItems: 'center', paddingBottom: 10 }}>
+
+                    <View style={{ flexDirection: 'row' }}>
+                        <Bont many={score.bont} />
+                    </View>
+                    <View style={{ flexDirection: 'row' }}>
+                        <Hbel many={score.hbel} />
+                    </View>
+
+                </View>
+
+            </View>)
         })
+
     }
     return (<View style={styles.container}>
         <View style={styles.sidebar}>
             <View style={{ alignItems: 'center', marginBottom: 30 }}>
-                <Avatar.Image size={150} source={require('./assets/logo.jpg')} />
+                <Avatar.Image size={120} source={require('./assets/logo.jpg')} />
             </View>
             {name && gameStatus === 'idle' ?
                 <View>
@@ -166,8 +203,10 @@ export default function App() {
                 : <>
                     {gameStatus === 'start' ?
                         <View>
-                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <View style={{ flexDirection: 'Column', alignItems: 'center' }}>
+
                                 <RenderScore></RenderScore>
+
                             </View>
                         </View> : <View>
                             <View style={{ marginTop: 20, marginBottom: 20, alignItems: 'center', flexDirection: 'row' }}>

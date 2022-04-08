@@ -54,8 +54,6 @@ class Table {
     }
 
   }
-
-
   //return players on the table
   get Players() {
     return this.CurrentPlayers.map(p => {
