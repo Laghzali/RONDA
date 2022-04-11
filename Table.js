@@ -1,11 +1,19 @@
-import { View, Text } from 'react-native';
-import Card from './Card'
+import { View, Text, ImageBackground, Image } from 'react-native';
 import styles from './styles';
+import TableCard from './TableCard';
+import RenderScore from './RenderScore';
 
-const Tabla = ({ table }) => {
+const Tabla = ({ table, score, round }) => {
 
-    return (<View style={styles.table}>
-        <RenderTable table={table}></RenderTable>
+    return (<View style={styles.tableWrap}>
+        <ImageBackground resizeMode='cover' style={styles.table} source={require('./assets/table2.png')}>
+            <View style={styles.innerWrap}>
+                <View style={styles.innerTable}>
+                    <RenderTable table={table}></RenderTable>
+                </View>
+                <RenderScore score={score}></RenderScore>
+            </View>
+        </ImageBackground>
     </View>)
 }
 
@@ -15,7 +23,7 @@ const RenderTable = ({ table }) => {
     let cards = []
 
     table ? table.forEach(card => {
-        cards.push(<Card disabled={true} key={card.number + card.type} num={card.number} type={card.type}></Card>)
+        cards.push(<TableCard key={card.number + card.type} num={card.number} type={card.type}></TableCard>)
     }) : ''
     return cards
 }

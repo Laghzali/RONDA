@@ -136,7 +136,6 @@ class Table {
         }
 
       } else {
-        console.log('throw')
         this.CurrentTable.push(ThrownCard)
         this.LastCard = ThrownCard;
       }
@@ -167,9 +166,7 @@ class Player {
     this.PlayerHand.forEach((mycard, index) => {
 
       if (JSON.stringify(mycard) === JSON.stringify(cardToremove)) {
-        console.log(this.PlayerHand.splice(index, 1))
-
-
+        this.PlayerHand.splice(index, 1)
       }
     })
   }

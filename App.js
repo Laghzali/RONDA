@@ -6,7 +6,7 @@ import { io } from "socket.io-client";
 import { TextInput, Button, Text } from 'react-native-paper';
 
 import Play from './Play';
-import { FlatList } from 'react-native-web';
+
 
 function generate_token(length) {
     //edit the token allowed characters
@@ -38,6 +38,7 @@ export default function App() {
     const [NameValue, setNameValue] = useState()
     const [Turn, setTurn] = useState()
     const [currentPlayers, setPlayers] = useState()
+    const [round, setRound] = useState()
     useEffect(() => {
         setSocket(io('ws://localhost:3000', { transports: ['websocket'] }))
     }, [])
@@ -83,6 +84,13 @@ export default function App() {
             console.log(data)
 
         })
+        //LISTEN FOR ROUND CHANGE
+        socket.on('GAME_RECEIVE_ROUND', round => {
+            console.log('warouuuuund', round)
+            setRound(round)
+        })
+
+        //LISTEN FOR SCORE CHANGE
         socket.on('GAME_RECEIVE_SCORE', score => {
             console.log(score)
             setScore(score)
@@ -141,49 +149,11 @@ export default function App() {
             }
         })
     }
-    const Bont = ({ many }) => {
-        let totalBont = []
-        for (let x = 0; x < many; x++) {
-            console.log('render bont')
-            totalBont.push(<Avatar.Image style={{ backgroundColor: 'none' }} size={35} source={require('./assets/bont.png')} />)
-        }
-        return totalBont
-    }
-    const Hbel = ({ many }) => {
-        let totalBont = []
-        for (let x = 0; x < many; x++) {
-            console.log('render bont')
-            totalBont.push(<Image style={{ backgroundColor: 'none', width: 34, height: 90 }} resizeMode={'contain'} source={require('./assets/7bel.png')} />)
-        }
-        return totalBont
-    }
-    const RenderScore = () => {
-        if (!score)
-            return
-        console.log(currentPlayers)
-        return score.map(score => {
-
-            return (<View style={{ flexDirection: 'column', alignItems: 'center', marginBottom: 30 }}>
-                <Text>{currentPlayers.get(score.p)}</Text>
-                <View style={{ flexDirection: 'column', alignItems: 'center', paddingBottom: 10 }}>
-
-                    <View style={{ flexDirection: 'row' }}>
-                        <Bont many={score.bont} />
-                    </View>
-                    <View style={{ flexDirection: 'row' }}>
-                        <Hbel many={score.hbel} />
-                    </View>
-
-                </View>
-
-            </View>)
-        })
-
-    }
     return (<View style={styles.container}>
         <View style={styles.sidebar}>
             <View style={{ alignItems: 'center', marginBottom: 30 }}>
                 <Avatar.Image size={120} source={require('./assets/logo.jpg')} />
+
             </View>
             {name && gameStatus === 'idle' ?
                 <View>
@@ -205,7 +175,7 @@ export default function App() {
                         <View>
                             <View style={{ flexDirection: 'Column', alignItems: 'center' }}>
 
-                                <RenderScore></RenderScore>
+                                <Text>EMPTY</Text>
 
                             </View>
                         </View> : <View>
@@ -220,7 +190,7 @@ export default function App() {
 
         </View>
         <View style={styles.body}>
-            {gameStatus == 'start' && myHand != null ? <Play phand={myHand} table={table} room={myRoom} socket={socket}></Play> : ''}
+            {gameStatus == 'start' && myHand != null ? <Play score={score} phand={myHand} table={table} room={myRoom} round={round} socket={socket}></Play> : ''}
         </View>
     </View>
     )
@@ -233,14 +203,14 @@ const styles = StyleSheet.create({
         backgroundColor: 'white'
     },
     sidebar: {
-        flex: 3,
+        flex: 2,
         borderRadius: 5,
         shadowColor: "#FF6F61",
         padding: 50,
         backgroundColor: '#34568B'
     },
     body: {
-        flex: 9
+        flex: 10
     },
     input: {
 

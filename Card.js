@@ -16,10 +16,12 @@ const Card = ({ back, num, type, disabled, socket, room, pid }) => {
     if (num != undefined) {
         src = require("./img/" + num + type + ".jpg")
     }
-    return (<View style={styles.card}>
-        <TouchableOpacity disabled={back ? true : disabled} onPress={() => Throw(socket, { number: num, type: type }, room, pid)}><Image resizeMode='contain' style={styles.img} source={back ? backcard : src} /></TouchableOpacity>
+    return (
+        <TouchableOpacity style={styles.card} disabled={back ? true : disabled} onPress={() => Throw(socket, { number: num, type: type }, room, pid)}>
+            <Image resizeMode='contain' style={styles.img} source={back ? backcard : src} />
+        </TouchableOpacity>
 
-    </View>)
+    )
 }
 
 export default Card

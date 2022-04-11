@@ -1,19 +1,23 @@
 
-import { View, Image, TouchableOpacity, Text } from 'react-native';
+import { View, Text, ImageBackground } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import styles from './styles';
 import MyHand from './MyHand';
 import Tabla from './Table';
+import CustomOverlay from './Overlay';
 
-export default function Play({ phand, table, socket, room }) {
+
+
+
+
+export default function Play({ phand, table, socket, room, round, score }) {
   const [PlayerHand, setPlayerHand] = useState(null)
   const [CurTable, setCurTable] = useState(null)
 
-
   //update table when table state changes
   useEffect(() => {
-    console.log('render play')
     setCurTable(table)
+    console.log(round)
   }, [table])
 
   //update hand when hand state changes
@@ -23,16 +27,19 @@ export default function Play({ phand, table, socket, room }) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.OPTOP}>
-        <Text>TOP</Text>
-      </View>
+
+      {round > 0 ? <CustomOverlay round={round}></CustomOverlay> : ''}
+
       {CurTable != null ?
-        <Tabla table={CurTable}></Tabla>
-        : ''}
-      {PlayerHand != null ?
-        <MyHand room={room} socket={socket} hand={PlayerHand}></MyHand>
+        <Tabla score={score} table={CurTable}></Tabla>
         : ''}
 
-    </View>
+      {
+        PlayerHand != null ?
+          <MyHand room={room} socket={socket} hand={PlayerHand}></MyHand>
+          : ''
+      }
+
+    </View >
   );
 }
