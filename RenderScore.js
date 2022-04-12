@@ -1,7 +1,7 @@
 
 import { View, Image, Text } from 'react-native';
 import React, { useState, useEffect } from 'react';
-import { Avatar } from 'react-native-paper';
+import { Avatar, configureFonts } from 'react-native-paper';
 
 const Bont = ({ many }) => {
     let totalBont = []
@@ -19,29 +19,53 @@ const Hbel = ({ many }) => {
     }
     return totalBont
 }
-const RenderScore = ({ score }) => {
-    let cords = [{ bottom: '20%' }, { top: '20%', transform: [{ rotate: '180deg' }] }, { right: '15%', transform: [{ rotate: '270deg' }] }, { left: '15%', transform: [{ rotate: '90deg' }] }]
+const RenderScore = ({ score, players }) => {
+    let cords = [{ right: '15%', transform: [{ rotate: '270deg' }] }, { top: '20%', transform: [{ rotate: '180deg' }] }, { left: '15%', transform: [{ rotate: '90deg' }] }]
+    let map = []
+    let map2 = []
+    let ind = 0
+    score.forEach((score, index) => {
+        console.log(players.get(score.p) + ind)
+        if (score.p == localStorage.getItem('Ronda_Player_ID')) {
+            map.push(<View style={{ width: 50, height: 50, position: 'absolute', bottom: '20%' }} >
+                <View style={{ flexDirection: 'column', alignItems: 'center', marginBottom: 30 }}>
+                    <Text> {players.get(score.p)}</Text>
+                    <View style={{ flexDirection: 'column', alignItems: 'center', paddingBottom: 10 }}>
 
-    return score.map((score, index) => {
-        return (<View style={{ width: 50, height: 50, position: 'absolute', ...cords[index] }}>
-            <View style={{ flexDirection: 'column', alignItems: 'center', marginBottom: 30 }}>
-                <Text> {score.cname}</Text>
-                <View style={{ flexDirection: 'column', alignItems: 'center', paddingBottom: 10 }}>
+                        <View style={{ flexDirection: 'row' }}>
+                            <Bont many={score.bont} />
+                        </View>
+                        <View style={{ flexDirection: 'row' }}>
+                            <Hbel many={score.hbel} />
+                        </View>
 
-                    <View style={{ flexDirection: 'row' }}>
-                        <Bont many={score.bont} />
                     </View>
-                    <View style={{ flexDirection: 'row' }}>
-                        <Hbel many={score.hbel} />
-                    </View>
-
                 </View>
-                <Avatar.Image source={{ uri: 'https://w7.pngwing.com/pngs/312/283/png-transparent-man-s-face-avatar-computer-icons-user-profile-business-user-avatar-blue-face-heroes-thumbnail.png' }} size={40}></Avatar.Image>
+            </View >)
+        }
+        if (score.p != localStorage.getItem('Ronda_Player_ID')) {
+            map2.push(
+                <View style={{ width: 50, height: 50, position: 'absolute', ...cords[ind] }}>
+                    <View style={{ flexDirection: 'column', alignItems: 'center', marginBottom: 30 }}>
+                        <Text> {players.get(score.p)}</Text>
+                        <View style={{ flexDirection: 'column', alignItems: 'center', paddingBottom: 10 }}>
 
-            </View>
-        </View>)
+                            <View style={{ flexDirection: 'row' }}>
+                                <Bont many={score.bont} />
+                            </View>
+                            <View style={{ flexDirection: 'row' }}>
+                                <Hbel many={score.hbel} />
+                            </View>
+
+                        </View>
+                    </View>
+                </View>)
+            ind += 1
+        }
     })
 
+
+    return map.concat(map2)
 }
 
 export default RenderScore

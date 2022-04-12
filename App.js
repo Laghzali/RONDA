@@ -43,8 +43,10 @@ export default function App() {
         setSocket(io('ws://localhost:3000', { transports: ['websocket'] }))
     }, [])
     useEffect(() => {
+
         if (!socket)
             return
+        localStorage.setItem('socketID', socket.id)
         //check if player already registered
         if (localStorage.getItem('Ronda_Client_Name')) {
             setName(localStorage.getItem('Ronda_Client_Name'))
@@ -190,7 +192,7 @@ export default function App() {
 
         </View>
         <View style={styles.body}>
-            {gameStatus == 'start' && myHand != null ? <Play score={score} phand={myHand} table={table} room={myRoom} round={round} socket={socket}></Play> : ''}
+            {gameStatus == 'start' && myHand != null ? <Play players={currentPlayers} score={score} phand={myHand} table={table} room={myRoom} round={round} socket={socket}></Play> : ''}
         </View>
     </View>
     )

@@ -1,4 +1,3 @@
-
 import { View, Text, ImageBackground } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import styles from './styles';
@@ -10,7 +9,7 @@ import CustomOverlay from './Overlay';
 
 
 
-export default function Play({ phand, table, socket, room, round, score }) {
+export default function Play({ players, phand, table, socket, room, round, score }) {
   const [PlayerHand, setPlayerHand] = useState(null)
   const [CurTable, setCurTable] = useState(null)
 
@@ -31,7 +30,7 @@ export default function Play({ phand, table, socket, room, round, score }) {
       {round > 0 ? <CustomOverlay round={round}></CustomOverlay> : ''}
 
       {CurTable != null ?
-        <Tabla score={score} table={CurTable}></Tabla>
+        <Tabla players={players} score={score} table={CurTable}></Tabla>
         : ''}
 
       {
