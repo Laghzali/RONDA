@@ -39,6 +39,8 @@ export default function App() {
     const [Turn, setTurn] = useState()
     const [currentPlayers, setPlayers] = useState()
     const [round, setRound] = useState()
+    const [teamScore, setTeamScore] = useState()
+
     useEffect(() => {
         setSocket(io('ws://localhost:3000', { transports: ['websocket'] }))
     }, [])
@@ -97,6 +99,12 @@ export default function App() {
             console.log(score)
             setScore(score)
         })
+        //LISTEN FOR team SCORE CHANGE
+        socket.on('GAME_RECEIVE_TEAMSCORE', score => {
+            console.log(score)
+            setTeamScore(score)
+        })
+
         //Listen to game start
         socket.on('GAME_START', xstatus => {
             socket.on

@@ -1,7 +1,7 @@
 
 import { View, Image, Text } from 'react-native';
 import React, { useState, useEffect } from 'react';
-import { Avatar, configureFonts } from 'react-native-paper';
+import { Avatar } from 'react-native-paper';
 
 const Bont = ({ many }) => {
     let totalBont = []
