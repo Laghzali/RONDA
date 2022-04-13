@@ -55,8 +55,6 @@ const styles = StyleSheet.create({
   }, innerTable: {
 
     margin: '10%',
-    borderWidth: 2,
-    borderColor: 'red',
     height: '50%',
     width: '50%',
     flexDirection: 'row',

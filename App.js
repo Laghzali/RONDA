@@ -42,7 +42,7 @@ export default function App() {
     const [teamScore, setTeamScore] = useState()
 
     useEffect(() => {
-        setSocket(io('https://boiling-headland-90981.herokuapp.com/', { transports: ['websocket'] }))
+        setSocket(io('https://ronda-ws-dev.herokuapp.com/', { transports: ['websocket'] }))
         //setSocket(io('ws://localhost:3000', { transports: ['websocket'] }))
     }, [])
     useEffect(() => {
