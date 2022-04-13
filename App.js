@@ -42,8 +42,8 @@ export default function App() {
     const [teamScore, setTeamScore] = useState()
 
     useEffect(() => {
-        // setSocket(io('https://boiling-headland-90981.herokuapp.com/', { transports: ['websocket'] }))
-        setSocket(io('ws://localhost:3000', { transports: ['websocket'] }))
+        setSocket(io('https://boiling-headland-90981.herokuapp.com/', { transports: ['websocket'] }))
+        //setSocket(io('ws://localhost:3000', { transports: ['websocket'] }))
     }, [])
     useEffect(() => {
 
@@ -137,7 +137,7 @@ export default function App() {
     }, [socket])
 
     const InitGame = (ROOM) => {
-        if (onlinePlayers > 1) {
+        if (onlinePlayers > 1 && onlinePlayers != 3) {
             ROOM ? socket.emit('GAME_INIT', { id: ROOM, status: 'start', maxplayers: onlinePlayers }) : false
         } else {
             alert('Not enough players')
