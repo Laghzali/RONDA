@@ -3,7 +3,7 @@ import styles from './styles';
 import TableCard from './TableCard';
 import RenderScore from './RenderScore';
 
-const Tabla = ({ table, score, round, players }) => {
+const Tabla = ({ table, score, round, players, teamscore }) => {
 
     return (<View style={styles.tableWrap}>
         <ImageBackground resizeMode='cover' style={styles.table} source={require('./assets/table2.png')}>
@@ -11,7 +11,7 @@ const Tabla = ({ table, score, round, players }) => {
                 <View style={styles.innerTable}>
                     <RenderTable table={table}></RenderTable>
                 </View>
-                <RenderScore players={players} score={score}></RenderScore>
+                <RenderScore teamscore={teamscore} players={players} score={score}></RenderScore>
             </View>
         </ImageBackground>
     </View>)

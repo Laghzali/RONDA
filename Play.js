@@ -9,7 +9,7 @@ import CustomOverlay from './Overlay';
 
 
 
-export default function Play({ players, phand, table, socket, room, round, score }) {
+export default function Play({ teamscore, players, phand, table, socket, room, round, score }) {
   const [PlayerHand, setPlayerHand] = useState(null)
   const [CurTable, setCurTable] = useState(null)
 
@@ -30,7 +30,7 @@ export default function Play({ players, phand, table, socket, room, round, score
       {round > 0 ? <CustomOverlay round={round}></CustomOverlay> : ''}
 
       {CurTable != null ?
-        <Tabla players={players} score={score} table={CurTable}></Tabla>
+        <Tabla teamscore={teamscore} players={players} score={score} table={CurTable}></Tabla>
         : ''}
 
       {

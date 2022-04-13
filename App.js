@@ -102,6 +102,7 @@ export default function App() {
         })
         //LISTEN FOR team SCORE CHANGE
         socket.on('GAME_RECEIVE_TEAMSCORE', score => {
+            console.log('TEAAAAAAAAAAAMSSCORE')
             console.log(score)
             setTeamScore(score)
         })
@@ -201,7 +202,7 @@ export default function App() {
 
         </View>
         <View style={styles.body}>
-            {gameStatus == 'start' && myHand != null ? <Play players={currentPlayers} score={score} phand={myHand} table={table} room={myRoom} round={round} socket={socket}></Play> : ''}
+            {gameStatus == 'start' && myHand != null ? <Play teamscore={teamScore} players={currentPlayers} score={score} phand={myHand} table={table} room={myRoom} round={round} socket={socket}></Play> : ''}
         </View>
     </View>
     )
